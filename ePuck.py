@@ -539,7 +539,7 @@ class ePuck():
 					if message[0] == 'R':
 						# For some reason that I don't understand, if you send a reset
 						# command 'R', sometimes you recive 1 or 2 lines of 'z,Command not found\r\n'
-						# Therefor I have to remove it from the expected message: The Hello message
+						# Therefore I have to remove it from the expected message: The Hello message
 						reply = reply.replace('z,Command not found\r\n', '')
 				self._debug('Message received: ', reply)
 				return reply.replace('\r\n', '')
