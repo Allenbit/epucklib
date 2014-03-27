@@ -220,6 +220,9 @@ class ePuck():
 
 		try:
 			n = self.serport.write(message)
+			# Simple hack for backwards compatibility (n is only returned since pySerial 2.5)
+			if n == None:
+				n = len(message)
 			self.messages_sent += 1
 		except Exception, e:
 			self._debug('Send problem:', e)
@@ -297,13 +300,17 @@ class ePuck():
 				# Leds
 				msg = struct.pack('<bbb', -ord(m[0]), m[1], m[2])
 				n = self._send(msg)
-				self._debug('Binary message sent of [' + str(n) + '] bytes: ' + str(struct.unpack('<bbb', msg)))
+				unpacked_msg = struct.unpack('<bbb', msg)
+				cmd = chr(-unpacked_msg[0])
+				self._debug('Binary message of ' + str(n) + ' bytes sent: ' + str(unpacked_msg) + '; ' + str(unpacked_msg[0]) + '=' + cmd)
 
 			elif m[0] == 'D' or m[0] == 'P':
 				# Set motor speed or set motor position
 				msg = struct.pack('<bhh', -ord(m[0]), m[1], m[2])
 				n = self._send(msg)
-				self._debug('Binary message sent of [' + str(n) + '] bytes: ' + str(struct.unpack('<bhh', msg)))
+				unpacked_msg = struct.unpack('<bhh', msg)
+				cmd = chr(-unpacked_msg[0])
+				self._debug('Binary message of ' + str(n) + ' bytes sent: ' + str(unpacked_msg) + '; ' + str(unpacked_msg[0]) + '=' + cmd)
 
 			else:
 				# Others actuators, parameters are separated by commas
@@ -474,6 +481,7 @@ class ePuck():
 		if self.conexion_status:
 			try:
 				# Stop the robot
+				self._debug("Timeout: " + str(self.serport.timeout))
 				self.stop()
 
 				# Close the socket
@@ -811,21 +819,29 @@ class ePuck():
 		:param led_value: 
 			- 0 : Off
 			- 1 : On (Red)
-			- 2 : Inverse
+			- 2 : Inverse, does not work for all leds
 		:type led_value: int
 		"""
 
 		led = abs(led_number)
 		value = abs(led_value)
 
-		if led < 128:
-			self._actuators_to_write.append(("L", led, value))
-			if value == 0:
-				self._leds_status[led] = False
-			elif value == 1:
-				self._leds_status[led] = True
+		if led < 11:
+			if led <= 7:
+				self._actuators_to_write.append(("L", led, value))
 			else:
-				self._leds_status[led] = not self._leds_status[led]
+				self._actuators_to_write.append(("L", 10, value))
+				for i in range(8):
+					if value == 0:
+						self._leds_status[i] = False
+					elif value == 1:
+						self._leds_status[i] = True
+				if value == 0:
+					self._leds_status[led] = False
+				elif value == 1:
+					self._leds_status[led] = True
+				else:
+					self._leds_status[led] = not self._leds_status[led]			
 			return True
 		else:
 			return False
@@ -932,7 +948,7 @@ class ePuck():
 		:rtype: Boolean
 		"""
 
-		reply = self.send_and_receive("k", tries_timeout=25)
+		reply = self.send_and_receive("k")
 		if reply[1] == "k":
 			return True
 		else:
