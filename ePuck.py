@@ -183,7 +183,7 @@ class ePuck():
 
 		return 0
 
-	def _recv(self, n=4096):
+	def _recv(self, n=128):
 		"""
 		Receive data from the robot
 		
@@ -298,17 +298,17 @@ class ePuck():
 		for m in actuators:
 			if m[0] == 'L':
 				# Leds
-				msg = struct.pack('<bbb', -ord(m[0]), m[1], m[2])
+				msg = struct.pack('<bbbb', -ord(m[0]), m[1], m[2], 0)
 				n = self._send(msg)
-				unpacked_msg = struct.unpack('<bbb', msg)
+				unpacked_msg = struct.unpack('<bbbb', msg)
 				cmd = chr(-unpacked_msg[0])
 				self._debug('Binary message of ' + str(n) + ' bytes sent: ' + str(unpacked_msg) + '; ' + str(unpacked_msg[0]) + '=' + cmd)
 
 			elif m[0] == 'D' or m[0] == 'P':
 				# Set motor speed or set motor position
-				msg = struct.pack('<bhh', -ord(m[0]), m[1], m[2])
+				msg = struct.pack('<bhhb', -ord(m[0]), m[1], m[2], 0)
 				n = self._send(msg)
-				unpacked_msg = struct.unpack('<bhh', msg)
+				unpacked_msg = struct.unpack('<bhhb', msg)
 				cmd = chr(-unpacked_msg[0])
 				self._debug('Binary message of ' + str(n) + ' bytes sent: ' + str(unpacked_msg) + '; ' + str(unpacked_msg[0]) + '=' + cmd)
 
@@ -449,7 +449,7 @@ class ePuck():
 		try:
 			self.serport = serial.Serial(0)#serial.serial_for_url(self.ttydev)
 			self.serport.baudrate = 230400
-			self.serport.timeout = 0.5
+			self.serport.timeout = 0.05
 
 		except Exception, e:
 			txt = 'Connection problem: \n' + str(e)
@@ -481,7 +481,7 @@ class ePuck():
 		if self.conexion_status:
 			try:
 				# Stop the robot
-				self._debug("Timeout: " + str(self.serport.timeout))
+				#self._debug("Timeout: " + str(self.serport.timeout))
 				self.stop()
 
 				# Close the socket
