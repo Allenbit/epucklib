@@ -346,6 +346,9 @@ class ePuck():
 			reply = self._recv()
 			while len(reply) < parameters[1]:
 				reply += self._recv()
+			if len(reply) != parameters[1]:
+			  self._debug('_recv msg with wrong length: ' + str(len(reply)) + ' expected: ' + str(parameters[1]))
+			  return False
 			reply = struct.unpack(parameters[2], reply)
 
 			self._debug('Binary message received: ', reply)
