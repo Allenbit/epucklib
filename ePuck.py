@@ -77,7 +77,7 @@ DIC_MSG = {
 	"v": 2,  # Version
 	"\n": 23,  # Menu
 	"\x0c": 2,  # Welcome
-	"k": 3,  # Calibration
+	"k": 2,  # Calibration
 	"R": 2  # Reset
 }
 
